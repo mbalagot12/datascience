@@ -17,6 +17,7 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 import os
 
+
 class Meridian:
 
     def __init__(self, location):
@@ -149,11 +150,3 @@ class Meridian:
         org_uri = f'{self.base_uri}/api/organizations/{self}'
         org = req.get(org_uri)
         return org
-
-
-
-
-
-
-
-
