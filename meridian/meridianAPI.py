@@ -24,9 +24,9 @@ class Meridian:
     def __init__(self, location, mauth):
         self.location = location
         self.mauth = mauth
-        self.token_id = self.getTokenId()
+        self.token_id = self.getTokenId
 
-
+    @property
     def getTokenId(self):
         dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
         if os.path.exists(dotenv_path):
