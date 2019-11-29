@@ -16,14 +16,14 @@ import requests as req
 from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 import os
-base_uri = 'https://edit.meridianapps.com'
-
 
 class Meridian:
 
     def __init__(self, location):
         self.location = location
         self.tokenId, self.mauth = self.getTokenId
+        self.headers = {"Content-Type": "multipart/form-data", "Authorization": "Token " + str(self.tokenId)}
+        self.base_uri = 'https://edit.meridianapps.com'
 
     @property
     def getTokenId(self):
@@ -69,10 +69,8 @@ class Meridian:
     def placemarkUploadImage(self, image, placemarkId):
         self.image = image
         self.placemarkId = placemarkId
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
         placemarks_uri = f'https://edit.meridianapps.com/api/locations/{self}/placemarks/{self.placemarkId}/image'
-        placemark = req.put(placemarks_uri, data=None, headers=headers, files=self.image, auth=self.mauth)
+        placemark = req.put(placemarks_uri, data=None, headers=self.headers, files=self.image, auth=self.mauth)
         return placemark
 
     def getLocations(self):
@@ -119,28 +117,22 @@ class Meridian:
         return feed
 
     def creat_a_map(self):
-        maps_uri = f'{base_uri}/api/locations/{self}/maps'
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        map = req.post(maps_uri, headers=headers, auth=self.mauth)
+        maps_uri = f'{self.base_uri}/api/locations/{self}/maps'
+        map = req.post(maps_uri, headers=self.headers, auth=self.mauth)
         return map
 
     def upload_a_map(self, mapid, svg):
         self.mapid = mapid
         self.svg = svg
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        maps_uri = f'{base_uri}/api/locations/{self}/maps/{self.mapid}/svg'
-        upload_map = req.put(maps_uri, headers=headers, files=self.svg, auth=self.mauth)
+        maps_uri = f'{self.base_uri}/api/locations/{self}/maps/{self.mapid}/svg'
+        upload_map = req.put(maps_uri, headers=self.headers, files=self.svg, auth=self.mauth)
         return upload_map
 
     def delete_map(self, mapid, svg):
         self.mapid = mapid
         self.svg = svg
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        maps_uri = f'{base_uri}/api/locations/{self}/maps/{self.mapid}/svg'
-        upload_map = req.delete(maps_uri, headers=headers, files=self.svg, auth=self.mauth)
+        maps_uri = f'{self.base_uri}/api/locations/{self}/maps/{self.mapid}/svg'
+        upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=self.mauth)
         return upload_map
 
     def location_search(self):
@@ -150,12 +142,12 @@ class Meridian:
 
     def location_search_field(self, fieldname):
         self.fieldname = fieldname
-        fieldname_uri = f'{base_uri}/locations/search?q={self.fieldname}:{self}'
+        fieldname_uri = f'{self.base_uri}/locations/search?q={self.fieldname}:{self}'
         fieldname = req.get(fieldname_uri)
         return fieldname
 
     def get_org(self):
-        org_uri = f'{base_uri}/api/organizations/{self}'
+        org_uri = f'{self.base_uri}/api/organizations/{self}'
         org = req.get(org_uri)
         return org
 
