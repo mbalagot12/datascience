@@ -23,7 +23,7 @@ class Meridian:
 
     def __init__(self, location):
         self.location = location
-        self.token_id, self.mauth = self.getTokenId
+        self.tokenId, self.mauth = self.getTokenId
 
     @property
     def getTokenId(self):
