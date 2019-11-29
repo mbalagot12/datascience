@@ -21,10 +21,9 @@ base_uri = 'https://edit.meridianapps.com'
 
 class Meridian:
 
-    def __init__(self, location, mauth):
+    def __init__(self, location):
         self.location = location
-        self.mauth = mauth
-        self.token_id = self.getTokenId
+        self.token_id, self.mauth = self.getTokenId
 
     @property
     def getTokenId(self):
@@ -36,7 +35,7 @@ class Meridian:
         login_uri: str = 'https://edit.meridianapps.com/api/login'
         token = req.post(login_uri, {'password': password, 'email': username})
         mauth = HTTPBasicAuth(username=username, password=password)
-        return token.json()['token'] and mauth
+        return token.json()['token'], mauth
 
     def getBeacons(self):
         beacons_uri = f'https://edit.meridianapps.com/api/locations/{self}/beacons'
