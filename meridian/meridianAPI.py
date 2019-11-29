@@ -13,22 +13,30 @@
 """
 
 import requests as req
-
+from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
+import os
 base_uri = 'https://edit.meridianapps.com'
+
 
 class Meridian:
 
-    def __init__(self, location, mauth, token_id):
+    def __init__(self, location, mauth):
         self.location = location
         self.mauth = mauth
-        self.token_id = token_id
+        self.token_id = self.getTokenId()
 
-    def getTokenId(self, username, password):
-        self.username = username
-        self.password = password
+
+    def getTokenId(self):
+        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+        if os.path.exists(dotenv_path):
+            load_dotenv(dotenv_path)
+        username = os.getenv("MERIDIAN_USER")
+        password = os.getenv("MERIDIAN_PASSWORD")
         login_uri: str = 'https://edit.meridianapps.com/api/login'
-        token = req.post(login_uri, {'password': self.password, 'email': self.username})
-        return token.json()['token']
+        token = req.post(login_uri, {'password': password, 'email': username})
+        mauth = HTTPBasicAuth(username=username, password=password)
+        return token.json()['token'] and mauth
 
     def getBeacons(self):
         beacons_uri = f'https://edit.meridianapps.com/api/locations/{self}/beacons'
