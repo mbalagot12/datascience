@@ -11,7 +11,6 @@ LOCATIONS = {"MB": "6352493312212992",
     "DenverMuseum": "4824167898152960"}
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-print(dotenv_path)
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 
