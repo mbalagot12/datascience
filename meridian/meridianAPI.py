@@ -25,6 +25,8 @@ class Meridian:
         self.tokenId, self.mauth = self.getTokenId
         self.headers = {"Content-Type": "multipart/form-data", "Authorization": "Token " + str(self.tokenId)}
         self.base_uri = 'https://edit.meridianapps.com'
+        self.beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons'
+        self.placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks'
 
     @property
     def getTokenId(self):
@@ -40,20 +42,17 @@ class Meridian:
 
     @property
     def getBeacons(self):
-        beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons'
-        beacons = req.get(beacons_uri)
+        beacons = req.get(self.beacons_uri)
         return beacons
 
     @property
     def getPlacemarks(self):
-        placemarks_uri = f'{self.base_uri}/api/locations/{self}/placemarks'
-        placemarks = req.get(placemarks_uri)
+        placemarks = req.get(self.placemarks_uri)
         return placemarks
 
     def createPlacemarks(self, placemark):
         self.placemark = placemark
-        placemarks_uri = f'{self.base_uri}/api/locations/{self}/placemarks'
-        placemarks = req.post(placemarks_uri, data=self.placemark, auth=self.mauth)
+        placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=self.mauth)
         return placemarks
 
     def patchPlacemarks(self, placemarkId):
