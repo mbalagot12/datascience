@@ -40,30 +40,36 @@ class Meridian:
         mauth = HTTPBasicAuth(username=username, password=password)
         return token.json()['token'], mauth
 
-    @property
     def getBeacons(self):
         beacons = req.get(self.beacons_uri)
         return beacons
 
-    @property
     def getPlacemarks(self):
         placemarks = req.get(self.placemarks_uri)
         return placemarks
 
-    def createPlacemarks(self, placemark):
-        self.placemark = placemark
+    @property
+    def createPlacemarks(self):
         placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=self.mauth)
         return placemarks
 
-    def patchPlacemarks(self, placemarkId):
-        self.placemarkId = placemarkId
-        placemarks_uri = f'{self.base_uri}/api/locations/{self}/placemarks/ {self.placemarkId}'
+    @createPlacemarks.setter
+    def createPlacemarks(self, placemark):
+        self.placemark = placemark
+
+    @property
+    def patchPlacemarks(self):
+        placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/ {self.placemarkId}'
         placemark = req.patch(placemarks_uri, data=None)
         return placemark
 
+    @patchPlacemarks.setter
+    def patchPlacemarks(self, placemarkId):
+        self.placemarkId = placemarkId
+
     def deletePlacemarks(self, placemarkId):
         self.placemarkId = placemarkId
-        placemarks_uri = f'{self.base_uri}/api/locations/{self}/placemarks/{self.placemarkId}'
+        placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/{self.placemarkId}'
         placemark = req.delete(placemarks_uri)
         return placemark
 
