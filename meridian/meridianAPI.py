@@ -38,11 +38,13 @@ class Meridian:
         mauth = HTTPBasicAuth(username=username, password=password)
         return token.json()['token'], mauth
 
+    @property
     def getBeacons(self):
-        beacons_uri = f'{self.base_uri}/api/locations/{self}/beacons'
+        beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons'
         beacons = req.get(beacons_uri)
         return beacons
 
+    @property
     def getPlacemarks(self):
         placemarks_uri = f'{self.base_uri}/api/locations/{self}/placemarks'
         placemarks = req.get(placemarks_uri)
