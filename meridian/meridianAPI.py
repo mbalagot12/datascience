@@ -76,8 +76,8 @@ class Meridian:
         return placemark
 
     def getLocations(self):
-        locations_uri = f'{self.base_uri}/api/locations'
-        locations = req.get(self)
+        self.locations_uri = f'{self.base_uri}/api/locations'
+        locations = req.get(self.locations_uri)
         return locations
 
     def get_beacon(self, mac):
@@ -120,8 +120,8 @@ class Meridian:
 
     def creat_map(self):
         maps_uri = f'{self.base_uri}/api/locations/{self}/maps'
-        map = req.post(maps_uri, headers=self.headers, auth=self.mauth)
-        return map
+        maps = req.post(maps_uri, headers=self.headers, auth=self.mauth)
+        return maps
 
     def upload_a_map(self, mapid, svg):
         self.mapid = mapid
