@@ -17,24 +17,27 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 import os
 
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+username = os.getenv("MERIDIAN_USER")
+password = os.getenv("MERIDIAN_PASSWORD")
+mauth = HTTPBasicAuth(username=username, password=password)
+
 
 class Meridian:
 
     def __init__(self, location, *args, **kwargs):
         self.location = location
-        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-        if os.path.exists(dotenv_path):
-            load_dotenv(dotenv_path)
-        self.username = os.getenv("MERIDIAN_USER")
-        self.password = os.getenv("MERIDIAN_PASSWORD")
         self.login_uri = f'{self.base_uri}/api/login'
-        self.tokenId, self.mauth = self.getTokenId
+        self.tokenId = self.getTokenId
         self.headers = {"Content-Type": "multipart/form-data", "Authorization": "Token " + str(self.tokenId)}
         self.base_uri = 'https://edit.meridianapps.com'
         self.beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons'
         self.placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks'
         self.locations_uri = f'{self.base_uri}/api/locations'
         self.campaigns_uri = f'{self.base_uri}/api/locations/{self.location}/campaigns'
+        self.pages_uri = f'{self.base_uri}/api/locations/{location}/pages?page_size=100'
         self.feeds_uri = f'{{self.base_uri}}/api/locations/{self.location}/feeds'
         self.maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps'
         self.search_uri = f'{self.base_uri}/locations/search?q={self.location}'
@@ -56,22 +59,9 @@ class Meridian:
         elif kwargs['fieldname']:
             self.fieldname = kwargs['fieldname']
 
-
-
-
-    @property
     def getTokenId(self):
-        token = req.post(self.login_uri, {'password': self.password, 'email': self.username})
-        mauth = HTTPBasicAuth(username=self.username, password=self.password)
-        return token.json()['token'], mauth
-
-    @getTokenId.setter
-    def getTokenId(self, username):
-        self.username = username
-
-    @getTokenId.setter
-    def getTokenId(self, password):
-        self.password = password
+        token = req.post(self.login_uri, {'password': password, 'email': username})
+        return token.json()['token']
 
     def getBeacons(self):
         beacons = req.get(self.beacons_uri)
@@ -83,7 +73,7 @@ class Meridian:
 
     @property
     def createPlacemarks(self):
-        placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=self.mauth)
+        placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=mauth)
         return placemarks
 
     @createPlacemarks.setter
@@ -113,7 +103,7 @@ class Meridian:
     @property
     def placemarkUploadImage(self):
         placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/{self.placemarkId}/image'
-        placemark = req.put(placemarks_uri, data=None, headers=self.headers, files=self.image, auth=self.mauth)
+        placemark = req.put(placemarks_uri, data=None, headers=self.headers, files=self.image, auth=mauth)
         return placemark
 
     @placemarkUploadImage.setter
