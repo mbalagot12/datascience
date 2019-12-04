@@ -27,7 +27,7 @@ mauth = HTTPBasicAuth(username=username, password=password)
 
 class Meridian:
 
-    def __init__(self, location, *args, **kwargs):
+    def __init__(self, location, **kwargs):
         self.location = location
         self.login_uri = f'{self.base_uri}/api/login'
         self.tokenId = self.getTokenId
@@ -42,22 +42,25 @@ class Meridian:
         self.maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps'
         self.search_uri = f'{self.base_uri}/locations/search?q={self.location}'
         self.org_uri = f'{self.base_uri}/api/organizations/{self.location}'
-        if kwargs['placemark']:
+        self.endpoints = kwargs
+        if 'placemark' in self.endpoints:
             self.placemark = kwargs['placemark']
-        elif kwargs['placemarkId']:
+        elif 'placemarkId' in self.endpoints:
             self.placemarkId = kwargs['placemarkId']
-        elif kwargs['image']:
-            self.image = kwargs['image']
-        elif kwargs['mac']:
+        elif 'image' in self.endpoints:
+            self.image = kwargs['inmage']
+        elif 'mac' in self.endpoints:
             self.mac = kwargs['mac']
-        elif kwargs['feedid']:
+        elif 'feedId' in self.endpoints:
             self.feedid = kwargs['feedid']
-        elif kwargs['mapid']:
-            self.mapid = kwargs['mapid']
-        elif kwargs['svg']:
+        elif 'mapId' in self.endpoints:
+            self.mapId = kwargs['mapId']
+        elif 'svg' in self.endpoints:
             self.svg = kwargs['svg']
         elif kwargs['fieldname']:
             self.fieldname = kwargs['fieldname']
+        else:
+            print('\n Error: Meridian endpoint specified does not exist.')
 
     def getTokenId(self):
         token = req.post(self.login_uri, {'password': password, 'email': username})
@@ -163,20 +166,27 @@ class Meridian:
         self.feedid = feedid
 
     def create_map(self):
-        maps = req.post(self.maps_uri, headers=self.headers, auth=self.mauth)
+        maps = req.post(self.maps_uri, headers=self.headers, auth=mauth)
         return maps
 
-    def upload_a_map(self, mapid, svg):
-        self.mapid = mapid
-        self.svg = svg
-        maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapid}/svg'
-        upload_map = req.put(maps_uri, headers=self.headers, files=self.svg, auth=self.mauth)
+    @property
+    def upload_map(self):
+        maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapId}/svg'
+        upload_map = req.put(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
         return upload_map
+
+    @upload_map.setter
+    def upload_map(self, mapId):
+        self.mapId = mapId
+
+    @upload_map.setter
+    def upload_map(self, svg):
+        self.svg = svg
 
     @property
     def delete_map(self):
         maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapid}/svg'
-        upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=self.mauth)
+        upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
         return upload_map
 
     @delete_map.setter
@@ -198,7 +208,7 @@ class Meridian:
         return fieldname
 
     @location_field.setter
-    def location_search(self, fieldname):
+    def location_field(self, fieldname):
         self.fieldname = fieldname
 
     def get_org(self):
