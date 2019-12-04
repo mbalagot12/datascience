@@ -57,8 +57,6 @@ class Meridian:
             self.mapId = kwargs['mapId']
         elif 'fieldname' in self.endpoints:
             self.fieldname = kwargs['fieldname']
-        else:
-            print('\n Error: Meridian endpoint value specified not allowed.')
 
     def getTokenId(self):
         token = req.post(self.login_uri, {'password': self.password, 'email': self.username})
