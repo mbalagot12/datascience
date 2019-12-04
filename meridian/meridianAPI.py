@@ -36,7 +36,8 @@ class Meridian:
         self.placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks'
         self.locations_uri = f'{self.base_uri}/api/locations'
         self.campaigns_uri = f'{self.base_uri}/api/locations/{self.location}/campaigns'
-        self.pages_uri = f'{self.base_uri}/api/locations/{location}/pages?page_size=100'
+        self.pages = 100
+        self.pages_uri = f'{self.base_uri}/api/locations/{location}/pages?page_size={self.pages}'
         self.feeds_uri = f'{{self.base_uri}}/api/locations/{self.location}/feeds'
         self.maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps'
         self.search_uri = f'{self.base_uri}/locations/search?q={self.location}'
@@ -146,9 +147,9 @@ class Meridian:
         events = req.get(events_uri)
         return events
 
-    @get_events.setter
-    def get_events(self, pages=100):
-        self.pages = pages
+    @get_events.getter
+    def get_events(self):
+        return self.pages
 
     def get_feeds(self):
         feeds = req.get(self.feeds_uri)
