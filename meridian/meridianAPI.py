@@ -17,27 +17,27 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 import os
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
-username = os.getenv("MERIDIAN_USER")
-password = os.getenv("MERIDIAN_PASSWORD")
-mauth = HTTPBasicAuth(username=username, password=password)
-
 
 class Meridian:
 
     def __init__(self, location, **kwargs):
         self.location = location
+        self.base_uri = 'https://edit.meridianapps.com'
         self.login_uri = f'{self.base_uri}/api/login'
+        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+        if os.path.exists(dotenv_path):
+            load_dotenv(dotenv_path)
+        self.username = os.getenv("MERIDIAN_USER")
+        self.password = os.getenv("MERIDIAN_PASSWORD")
+        self.mauth = HTTPBasicAuth(username=self.username, password=self.password)
         self.tokenId = self.getTokenId
         self.headers = {"Content-Type": "multipart/form-data", "Authorization": "Token " + str(self.tokenId)}
-        self.base_uri = 'https://edit.meridianapps.com'
         self.beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons'
         self.placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks'
         self.locations_uri = f'{self.base_uri}/api/locations'
         self.campaigns_uri = f'{self.base_uri}/api/locations/{self.location}/campaigns'
-        self.pages_uri = f'{self.base_uri}/api/locations/{location}/pages?page_size=100'
+        self.pages = 100
+        self.pages_uri = f'{self.base_uri}/api/locations/{location}/pages?page_size={self.pages}'
         self.feeds_uri = f'{{self.base_uri}}/api/locations/{self.location}/feeds'
         self.maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps'
         self.search_uri = f'{self.base_uri}/locations/search?q={self.location}'
@@ -55,15 +55,11 @@ class Meridian:
             self.feedid = kwargs['feedid']
         elif 'mapId' in self.endpoints:
             self.mapId = kwargs['mapId']
-        elif 'svg' in self.endpoints:
-            self.svg = kwargs['svg']
-        elif kwargs['fieldname']:
+        elif 'fieldname' in self.endpoints:
             self.fieldname = kwargs['fieldname']
-        else:
-            print('\n Error: Meridian endpoint value specified not allowed.')
 
     def getTokenId(self):
-        token = req.post(self.login_uri, {'password': password, 'email': username})
+        token = req.post(self.login_uri, {'password': self.password, 'email': self.username})
         return token.json()['token']
 
     def getBeacons(self):
@@ -76,7 +72,7 @@ class Meridian:
 
     @property
     def createPlacemarks(self):
-        placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=mauth)
+        placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=self.mauth)
         return placemarks
 
     @createPlacemarks.setter
@@ -106,7 +102,7 @@ class Meridian:
     @property
     def placemarkUploadImage(self):
         placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/{self.placemarkId}/image'
-        placemark = req.put(placemarks_uri, data=None, headers=self.headers, files=self.image, auth=mauth)
+        placemark = req.put(placemarks_uri, data=None, headers=self.headers, files=self.image, auth=self.mauth)
         return placemark
 
     @placemarkUploadImage.setter
@@ -147,9 +143,9 @@ class Meridian:
         events = req.get(events_uri)
         return events
 
-    @get_events.setter
-    def get_events(self, pages=100):
-        self.pages = pages
+    @get_events.getter
+    def get_events(self):
+        return self.pages
 
     def get_feeds(self):
         feeds = req.get(self.feeds_uri)
@@ -166,13 +162,13 @@ class Meridian:
         self.feedid = feedid
 
     def create_map(self):
-        maps = req.post(self.maps_uri, headers=self.headers, auth=mauth)
+        maps = req.post(self.maps_uri, headers=self.headers, auth=self.mauth)
         return maps
 
     @property
     def upload_map(self):
         maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapId}/svg'
-        upload_map = req.put(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
+        upload_map = req.put(maps_uri, headers=self.headers, files=self.svg, auth=self.mauth)
         return upload_map
 
     @upload_map.setter
@@ -186,7 +182,7 @@ class Meridian:
     @property
     def delete_map(self):
         maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapId}/svg'
-        upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
+        upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=self.mauth)
         return upload_map
 
     @delete_map.setter
