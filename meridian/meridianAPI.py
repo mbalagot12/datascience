@@ -48,7 +48,7 @@ class Meridian:
         elif 'placemarkId' in self.endpoints:
             self.placemarkId = kwargs['placemarkId']
         elif 'image' in self.endpoints:
-            self.image = kwargs['inmage']
+            self.image = kwargs['image']
         elif 'mac' in self.endpoints:
             self.mac = kwargs['mac']
         elif 'feedId' in self.endpoints:
@@ -60,7 +60,7 @@ class Meridian:
         elif kwargs['fieldname']:
             self.fieldname = kwargs['fieldname']
         else:
-            print('\n Error: Meridian endpoint specified does not exist.')
+            print('\n Error: Meridian endpoint value specified not allowed.')
 
     def getTokenId(self):
         token = req.post(self.login_uri, {'password': password, 'email': username})
@@ -185,13 +185,13 @@ class Meridian:
 
     @property
     def delete_map(self):
-        maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapid}/svg'
+        maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapId}/svg'
         upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
         return upload_map
 
     @delete_map.setter
-    def delete_map(self, mapid):
-        self.mapid = mapid
+    def delete_map(self, mapId):
+        self.mapId = mapId
 
     @delete_map.setter
     def delete_map(self, svg):
