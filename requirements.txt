@@ -1,0 +1,16 @@
+dotenv
+asn1crypto==1.2.0
+certifi==2019.11.28
+cffi==1.13.2
+chardet==3.0.4
+Click==7.0
+cryptography==2.8
+idna==2.8
+pycparser==2.19
+pyOpenSSL==19.1.0
+PySocks==1.7.1
+python-dotenv==0.10.3
+requests==2.22.0
+six==1.13.0
+urllib3==1.24.2
+virtualenv==16.7.8

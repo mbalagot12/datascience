@@ -13,149 +13,204 @@
 """
 
 import requests as req
+from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
+import os
 
-base_uri = 'https://edit.meridianapps.com'
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+username = os.getenv("MERIDIAN_USER")
+password = os.getenv("MERIDIAN_PASSWORD")
+mauth = HTTPBasicAuth(username=username, password=password)
+
 
 class Meridian:
 
-    def __init__(self, location, mauth, token_id):
+    def __init__(self, location, **kwargs):
         self.location = location
-        self.mauth = mauth
-        self.token_id = token_id
+        self.login_uri = f'{self.base_uri}/api/login'
+        self.tokenId = self.getTokenId
+        self.headers = {"Content-Type": "multipart/form-data", "Authorization": "Token " + str(self.tokenId)}
+        self.base_uri = 'https://edit.meridianapps.com'
+        self.beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons'
+        self.placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks'
+        self.locations_uri = f'{self.base_uri}/api/locations'
+        self.campaigns_uri = f'{self.base_uri}/api/locations/{self.location}/campaigns'
+        self.pages_uri = f'{self.base_uri}/api/locations/{location}/pages?page_size=100'
+        self.feeds_uri = f'{{self.base_uri}}/api/locations/{self.location}/feeds'
+        self.maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps'
+        self.search_uri = f'{self.base_uri}/locations/search?q={self.location}'
+        self.org_uri = f'{self.base_uri}/api/organizations/{self.location}'
+        self.endpoints = kwargs
+        if 'placemark' in self.endpoints:
+            self.placemark = kwargs['placemark']
+        elif 'placemarkId' in self.endpoints:
+            self.placemarkId = kwargs['placemarkId']
+        elif 'image' in self.endpoints:
+            self.image = kwargs['image']
+        elif 'mac' in self.endpoints:
+            self.mac = kwargs['mac']
+        elif 'feedId' in self.endpoints:
+            self.feedid = kwargs['feedid']
+        elif 'mapId' in self.endpoints:
+            self.mapId = kwargs['mapId']
+        elif 'svg' in self.endpoints:
+            self.svg = kwargs['svg']
+        elif kwargs['fieldname']:
+            self.fieldname = kwargs['fieldname']
+        else:
+            print('\n Error: Meridian endpoint value specified not allowed.')
 
-    def getTokenId(self, username, password):
-        self.username = username
-        self.password = password
-        login_uri: str = 'https://edit.meridianapps.com/api/login'
-        token = req.post(login_uri, {'password': self.password, 'email': self.username})
+    def getTokenId(self):
+        token = req.post(self.login_uri, {'password': password, 'email': username})
         return token.json()['token']
 
     def getBeacons(self):
-        beacons_uri = f'https://edit.meridianapps.com/api/locations/{self}/beacons'
-        beacons = req.get(beacons_uri)
+        beacons = req.get(self.beacons_uri)
         return beacons
 
     def getPlacemarks(self):
-        placemarks_uri = f'https://edit.meridianapps.com/api/locations/{self}/placemarks'
-        print(placemarks_uri)
-        placemarks = req.get(placemarks_uri)
+        placemarks = req.get(self.placemarks_uri)
         return placemarks
 
+    @property
+    def createPlacemarks(self):
+        placemarks = req.post(self.placemarks_uri, data=self.placemark, auth=mauth)
+        return placemarks
+
+    @createPlacemarks.setter
     def createPlacemarks(self, placemark):
         self.placemark = placemark
-        placemarks_uri = f'https://edit.meridianapps.com/api/locations/{self}/placemarks'
-        placemarks = req.post(placemarks_uri, data=self.placemark, auth=self.mauth)
-        return placemarks
 
-    def patchPlacemarks(self, placemarkId):
-        self.placemarkId = placemarkId
-        placemarks_uri = f'https://edit.meridianapps.com/api/locations/{self}/placemarks/ {self.placemarkId}'
+    @property
+    def patchPlacemarks(self):
+        placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/{self.placemarkId}'
         placemark = req.patch(placemarks_uri, data=None)
         return placemark
 
-    def deletePlacemarks(self, placemarkId):
+    @patchPlacemarks.setter
+    def patchPlacemarks(self, placemarkId):
         self.placemarkId = placemarkId
-        placemarks_uri = f'https://edit.meridianapps.com/api/locations/{self}/placemarks/{self.placemarkId}'
+
+    @property
+    def deletePlacemarks(self):
+        placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/{self.placemarkId}'
         placemark = req.delete(placemarks_uri)
         return placemark
 
-    def placemarkUploadImage(self, image, placemarkId):
-        self.image = image
+    @deletePlacemarks.setter
+    def deletePlacemarks(self, placemarkId):
         self.placemarkId = placemarkId
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        placemarks_uri = f'https://edit.meridianapps.com/api/locations/{self}/placemarks/{self.placemarkId}/image'
-        placemark = req.put(placemarks_uri, data=None, headers=headers, files=self.image, auth=self.mauth)
+
+    @property
+    def placemarkUploadImage(self):
+        placemarks_uri = f'{self.base_uri}/api/locations/{self.location}/placemarks/{self.placemarkId}/image'
+        placemark = req.put(placemarks_uri, data=None, headers=self.headers, files=self.image, auth=mauth)
         return placemark
 
+    @placemarkUploadImage.setter
+    def placemarkUploadImage(self, image):
+        self.image = image
+
+    @placemarkUploadImage.setter
+    def placemarkUploadImage(self, placemarkId):
+        self.placemarkId = placemarkId
+
     def getLocations(self):
-        locations_uri = f'https://edit.meridianapps.com/api/locations'
-        locations = req.get(self)
+        locations = req.get(self.locations_uri)
         return locations
 
     def get_beacon(self, mac):
         self.mac = mac
-        beacons_uri = f'https://edit.meridianapps.com/api/locations/{self}/beacons/{self.mac}'
+        beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons/{self.mac}'
         beacon = req.get(beacons_uri)
         return beacon
 
     def get_beacon_changesets(self, mac):
         self.mac = mac
-        beacons_uri = f'https://edit.meridianapps.com/api/locations/{self}/beacons/{self.mac}/changesets'
+        beacons_uri = f'{self.base_uri}/api/locations/{self.location}/beacons/{self.mac}/changesets'
         beacon = req.get(beacons_uri)
         return beacon
 
-    def get_campaings(self):
-        campaigns_uri = f'https://edit.meridianapps.com/api/locations/{self}/campaigns'
-        campaigns = req.get(campaigns_uri)
+    def get_campaigns(self):
+        campaigns = req.get(self.campaigns_uri)
         return campaigns
 
     def get_pages(self):
-        pages_uri = f'{base_uri}/api/locations/{self}/pages?page_size=100'
-        pages = req.get(pages_uri)
+        pages = req.get(self.pages_uri)
         return pages
 
+    @property
     def get_events(self):
-        events_uri = f'{base_uri}/api/locations/{self}/events?page_size=100'
+        events_uri = f'{{self.base_uri}}/api/locations/{self.location}/events?page_size={self.pages}'
         events = req.get(events_uri)
         return events
 
+    @get_events.setter
+    def get_events(self, pages=100):
+        self.pages = pages
+
     def get_feeds(self):
-        feeds_uri = f'{base_uri}/api/locations/{self}/feeds'
-        feeds = req.get(feeds_uri)
+        feeds = req.get(self.feeds_uri)
         return feeds
 
-    def get_a_feed(self, feedid):
-        self.feedid = feedid
-        feed_uri = f'{base_uri}/api/locations/{self}/feeds/{self.feedid}'
+    @property
+    def get_a_feed(self):
+        feed_uri = f'{{self.base_uri}}/api/locations/{self.location}/feeds/{self.feedid}'
         feed = req.get(feed_uri)
         return feed
 
-    def creat_a_map(self):
-        maps_uri = f'{base_uri}/api/locations/{self}/maps'
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        map = req.post(maps_uri, headers=headers, auth=self.mauth)
-        return map
+    @get_a_feed.setter
+    def get_a_feed(self, feedid):
+        self.feedid = feedid
 
-    def upload_a_map(self, mapid, svg):
-        self.mapid = mapid
-        self.svg = svg
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        maps_uri = f'{base_uri}/api/locations/{self}/maps/{self.mapid}/svg'
-        upload_map = req.put(maps_uri, headers=headers, files=self.svg, auth=self.mauth)
+    def create_map(self):
+        maps = req.post(self.maps_uri, headers=self.headers, auth=mauth)
+        return maps
+
+    @property
+    def upload_map(self):
+        maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapId}/svg'
+        upload_map = req.put(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
         return upload_map
 
-    def delete_map(self, mapid, svg):
-        self.mapid = mapid
+    @upload_map.setter
+    def upload_map(self, mapId):
+        self.mapId = mapId
+
+    @upload_map.setter
+    def upload_map(self, svg):
         self.svg = svg
-        headers = {'Content-Type': 'multipart/form-data',
-                   'Authorization': 'Token ' + self.tokenId}
-        maps_uri = f'{base_uri}/api/locations/{self}/maps/{self.mapid}/svg'
-        upload_map = req.delete(maps_uri, headers=headers, files=self.svg, auth=self.mauth)
+
+    @property
+    def delete_map(self):
+        maps_uri = f'{self.base_uri}/api/locations/{self.location}/maps/{self.mapId}/svg'
+        upload_map = req.delete(maps_uri, headers=self.headers, files=self.svg, auth=mauth)
         return upload_map
+
+    @delete_map.setter
+    def delete_map(self, mapId):
+        self.mapId = mapId
+
+    @delete_map.setter
+    def delete_map(self, svg):
+        self.svg = svg
 
     def location_search(self):
-        search_uri = f'{base_uri}/locations/search?q={self}'
-        search = req.get(search_uri)
+        search = req.get(self.search_uri)
         return search
 
-    def location_search_field(self, fieldname):
-        self.fieldname = fieldname
-        fieldname_uri = f'{base_uri}/locations/search?q={self.fieldname}:{self}'
+    @property
+    def location_field(self):
+        fieldname_uri = f'{self.base_uri}/locations/search?q={self.fieldname}:{self.location}'
         fieldname = req.get(fieldname_uri)
         return fieldname
 
+    @location_field.setter
+    def location_field(self, fieldname):
+        self.fieldname = fieldname
+
     def get_org(self):
-        org_uri = f'{base_uri}/api/organizations/{self}'
-        org = req.get(org_uri)
+        org = req.get(self.org_uri)
         return org
-
-
-
-
-
-
-
-
