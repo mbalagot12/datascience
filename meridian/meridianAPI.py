@@ -55,9 +55,7 @@ class Meridian:
             self.feedid = kwargs['feedid']
         elif 'mapId' in self.endpoints:
             self.mapId = kwargs['mapId']
-        elif 'svg' in self.endpoints:
-            self.svg = kwargs['svg']
-        elif 'fieldname':
+        elif 'fieldname' in self.endpoints:
             self.fieldname = kwargs['fieldname']
         else:
             print('\n Error: Meridian endpoint value specified not allowed.')
